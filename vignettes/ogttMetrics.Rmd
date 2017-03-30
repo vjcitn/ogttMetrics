@@ -1,0 +1,279 @@
+---
+title: "ogttMetrics -- methods for OMNICarb OGTT data analysis"
+author: "Vincent J. Carey, stvjc at channing.harvard.edu"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{ogttXover}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::pdf_document:
+    toc: yes
+    number_sections: yes
+  BiocStyle::html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+
+# Introduction
+
+This report and software is motivated by experience
+with the use 
+of oral glucose tolerance tests in an
+experimental study of nutritional strategies
+to reduce the risk of diabetes and cardiovascular disease (cite
+OMNICarb).  
+
+Briefly, a factorial cross-over design was employed
+to assess the effects of varying carbohydrate volume (C vs. c
+denoting high vs. low carbohydrate content) and
+glycemic index (G vs. g denoting high vs. low glycemic index).
+Each person in the study consumed a random permutation
+of the sequence (CG, Cg, cG, cg), with, for example, "CG" denoting a diet with
+high carbohydrate content, high glycemic index.
+
+
+# Setup
+
+A small segment of code (hidden) creates a container
+for all the OGTT studies collected in the study.
+```{r setup, echo=FALSE}
+suppressPackageStartupMessages({
+library(MultiAssayExperiment)
+library(ogttMetrics)
+library(Biobase)
+library(SummarizedExperiment)
+library(dplyr)
+})
+data(xoverSamp)
+xoverSamp
+```
+
+Missing data in the crossover study was limited.
+
+```{r lkup,fig=TRUE, height=3.5, width=6}
+upsetSamples(subsetByAssay(xoverSamp, 
+  paste0("insulin_", c("base", "CG", "Cg", "cG", "cg"))), mb.ratio=c(.5,.5))
+```
+ 
+# Adding diet-specific metrics
+
+## Matsuda's index
+
+A widely used measure of insulin sensitivity derivable from
+OGTT is the Matsuda index.  We use the formula provided
+at http://mmatsuda.diabetes-smc.jp/english.html, in the "Web calculator",
+for the short OGTT protocol.
+
+```{r domats1}
+data(obaSamp)
+omnilit = subsetByAssay(obaSamp, c("insulin", "glucose"))
+omnilit = addMatsuda120(omnilit)
+omnilit
+```
+
+## Baseline weight
+
+```{r dowgt}
+w = matrix(pData(omnilit)$bodyweight,nr=1)
+rownames(w) = "bodyweight"
+colnames(w) = rownames(pData(omnilit))
+newEL = ExperimentList(c(experiments(omnilit)@listData, list(bodyweight=w)))
+omnilit = MultiAssayExperiment(newEL, pData(omnilit)) # set up sampleMap
+metadata(omnilit) = list(times=c(0, 10, 20, 30, 60, 90, 120))
+omnilit = as(omnilit, "ogttCohort")
+```
+
+## Insulin sensitivity
+
+### For a single OGTT series
+
+```{r lkmm}
+mm = minmodByID(omnilit, "1")
+names(mm)
+mm$fit
+```
+
+### Visualization of the fit
+
+```{r domo,fig=TRUE}
+plot_OGTT_fit(mm)
+```
+
+### For a cohort
+
+Here we demonstrate fitting of the minimal model
+to estimate $S_I$ (insulin sensitivity).  We also
+illustrate how to update a multi-assay experiment
+object and coerce to ogttCohort instance, which includes
+formal representation of assay times.
+
+```{r docoh, cache=TRUE}
+library(parallel)
+options(mc.cores=3)
+allid = rownames(pData(omnilit)) 
+ans = mclapply(allid, function(x) { try(minmodByID( omnilit, x))})
+SIs = sapply(ans, function(x) 
+   { 
+   if(inherits(x, "try-error")) return(NA) else coef(x$fit)["SI"]
+   })
+summary(SIs)
+SIs = matrix(SIs, nr=1)
+rownames(SIs) = "SI"
+colnames(SIs) = rownames(pData(omnilit))
+newEL = ExperimentList(c(experiments(omnilit)@listData, list(SI=SIs)))
+omnilit = MultiAssayExperiment(newEL, pData(omnilit)) # set up sampleMap
+metadata(omnilit) = list(times=c(0, 10, 20, 30, 60, 90, 120))
+omnilit = as(omnilit, "ogttCohort")
+```
+
+This process has been carried out on the data from baseline and four
+diets, using the following (unevaluated) code pattern, in which the initial
+versions of data possess only insulin, glucose and bodyweight
+assay data.
+
+```{r doconv,eval=FALSE}
+omnicBase = addMatsuda120(updateOGTT(omnicBase))
+library(parallel)
+options(mc.cores=3)
+siBase = matrix(getMinmodSIs(omnicBase, iter=mclapply), nr=1)
+rownames(siBase) = "SI"
+omnicBase = addAssay(omnicBase, siBase, "SI")
+```
+
+# Proceeding to multivariate analysis
+
+Here we work with a simple subset of the full OMNICarb data.
+
+We can concatenate data from multiple treatments
+using the concat function.
+
+```{r doconc,eval=TRUE}
+data(omnicBase_samp)
+omnicBase_samp = addMatsuda120(omnicBase_samp, gname="glucose_base",
+        iname="insulin_base")
+data(omnicbCbG_samp)
+omnicCG_samp = addMatsuda120(omnicCG_samp, gname="glucose_CG",
+        iname="insulin_CG")
+data(omniclclg_samp)
+omniccg_samp = addMatsuda120(omniccg_samp, gname="glucose_cg",
+        iname="insulin_cg")
+data(omnicbClg_samp)
+omnicCg_samp = addMatsuda120(omnicCg_samp, gname="glucose_Cg",
+        iname="insulin_Cg")
+data(omniclcbG_samp)
+omniccG_samp = addMatsuda120(omniccG_samp, gname="glucose_cG",
+        iname="insulin_cG")
+allmsi = concat(list(base=omnicBase_samp, CG=omnicCG_samp,
+    Cg=omnicCg_samp, cG=omniccG_samp, cg=omniccg_samp))
+allmsi
+```
+
+We will obtain a 'long thin' representation, decode
+the diet, and obtain a paired t-test for a contrast of interest.
+```{r getp1,eval=TRUE}
+msiThin = rearrange(allmsi)
+diet = gsub(".*_", "", msiThin$assay)
+msiThin$diet = diet
+library(dplyr)
+library(magrittr)
+CG = data.frame(msiThin) %>% 
+   filter(diet=="CG" & rowname=="Mats120") %>% 
+   rename(mat_CG=value)
+cg = data.frame(msiThin) %>% 
+     filter(diet=="cg" & rowname=="Mats120") %>% 
+     rename(mat_cg=value)
+t1 = inner_join(CG, cg, by="primary")
+with(t1, t.test(mat_cg-mat_CG, var.equal=TRUE, conf.level=.99))
+```
+
+We can work flexibly from the long thin representation to
+reproduce JAMA figure 3 element on insulin sensitivity.
+```{r docodeth,eval=TRUE}
+merge_diets = function(lth, d1="CG", d2="cg", measure="Mats120") {
+  di1 = data.frame(lth) %>%
+         filter(diet==d1 & rowname==measure) %>%
+         rename(ocd1 = value)
+  di2 = data.frame(lth) %>%
+         filter(diet==d2 & rowname==measure) %>%
+         rename(ocd2 = value)
+  inner_join(di1, di2, by="primary")
+}
+cgCG = merge_diets(msiThin, d1="cg", d2="CG")
+with(cgCG, t.test(ocd1-ocd2, var.equal=TRUE, conf.level=.99))
+#CgCG = merge_diets(msiThin, d1="Cg", d2="CG")
+#with(cgCG, t.test(ocd1-ocd2, var.equal=TRUE, conf.level=.95))
+generateTests = function(lth, pairs, levels, measure="Mats120") {
+  allm = lapply(pairs, function(x) merge_diets(lth, d1=x[1], d2=x[2], measure=measure))
+  ans = lapply(seq_along(allm), function(x) with(allm[[x]], t.test(ocd1-ocd2,
+   var.equal=TRUE, conf.level=levels[x])))
+  nms = sapply(pairs, paste, collapse="-")
+  names(ans) = nms
+  ans
+}
+fig3tests = generateTests(msiThin, 
+   list(c("Cg", "CG"), c("cg", "cG"), 
+        c("cG", "CG"), c("cg", "Cg"), c("cg", "CG")), 
+   levels=c(.95, .95, .95, .95, .99))
+```
+
+Now we can generate an analog of Figure 3, based however
+on the subset in the package.  Contact the maintainer
+for the complete dataset.
+
+```{r dof3, fig=TRUE, echo=FALSE, eval=TRUE}
+ints = sapply(fig3tests, "[[", "conf.int")
+mns = sapply(fig3tests, "[[", "estimate")
+nint = length(mns)
+xl = range(as.numeric(ints))*1.05
+par(mar=c(4,5,2,2))
+plot(mns, nint:1, pch=19, axes=FALSE, 
+    xlab=expression(paste(Delta, " Matsuda")), xlim=xl,
+    ylim=c(.8,nint+.2), ylab=" ")
+segments(ints[1,], nint:1, ints[2,], nint:1)
+axis(1)
+axis(2, at=nint:1, labels=names(fig3tests),las=2)
+abline(v=0)
+```
+
+```{r dof3b, fig=FALSE, echo=FALSE, eval=FALSE}
+fig3btests = generateTests(msiThin, 
+   list(c("Cg", "CG"), c("cg", "cG"), 
+        c("cG", "CG"), c("cg", "Cg"), c("cg", "CG")), 
+   levels=c(.95, .95, .95, .95, .99), measure="SI")
+intsb = sapply(fig3btests, "[[", "conf.int")
+mnsb = sapply(fig3btests, "[[", "estimate")
+nintb = length(mnsb)
+xlb = range(as.numeric(intsb))*1.05
+par(mar=c(4,5,2,2))
+plot(mnsb, nintb:1, pch=19, axes=FALSE, 
+    xlab=expression(paste(Delta, " SI")), xlim=xlb,
+    ylim=c(.8,nintb+.2), ylab=" ")
+segments(intsb[1,], nintb:1, intsb[2,], nintb:1)
+axis(1)
+axis(2, at=nintb:1, labels=names(fig3btests),las=2)
+abline(v=0)
+```
+
+Upon adding minimal model fits, the following code
+could be used to produce analogous interval displays for SI.
+
+```{r finalpl,fig=FALSE,eval=FALSE}
+par(mfrow=c(2,2), mar=c(4,5,2,2))
+plot(mns, nint:1, pch=19, axes=FALSE, 
+    xlab=expression(paste(Delta, " Matsuda")), xlim=xl,
+    ylim=c(.8,nint+.2), ylab=" ")
+segments(ints[1,], nint:1, ints[2,], nint:1)
+axis(1)
+axis(2, at=nint:1, labels=names(fig3tests),las=2)
+abline(v=0)
+plot(mnsb, nintb:1, pch=19, axes=FALSE, 
+    xlab=expression(paste(Delta, " SI")), xlim=xlb,
+    ylim=c(.8,nintb+.2), ylab=" ")
+segments(intsb[1,], nintb:1, intsb[2,], nintb:1)
+axis(1)
+axis(2, at=nintb:1, labels=names(fig3btests),las=2)
+abline(v=0)
+```

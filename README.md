@@ -1,2 +1,3 @@
 # ogttMetrics
-R package for managing and analyzing large collections of oral glucose tolerance tests
+
+R package for management and analysis of large numbers of oral glucose tolerance test series

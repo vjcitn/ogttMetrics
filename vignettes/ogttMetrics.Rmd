@@ -53,6 +53,26 @@ xoverSamp
 
 Missing data in the crossover study was limited.
 
+```{r defineupst,echo=FALSE,results="hide"}
+upsetSamples <- function(MultiAssayExperiment,
+                         nsets=length(MultiAssayExperiment),
+                         nintersects = 24, order.by = "freq",
+                         idclip = function(x) substr(x, 1, 12), ... ) { 
+    maesn <- colnames(MultiAssayExperiment)
+    st <- idclip(maesn[[1L]])
+    for (i in seq_along(maesn)[-1])
+        st <- union(st, idclip(maesn[[i]]))
+    nr <- length(st)
+    incid <- matrix(0, nrow = nr, ncol = length(maesn))
+    rownames(incid) <- as.character(st)
+    for (i in seq_along(maesn))
+        incid[, i] <- 1*(rownames(incid) %in% idclip(maesn[[i]]))
+    colnames(incid) <- names(MultiAssayExperiment)
+    UpSetR::upset(data.frame(incid), nsets = nsets, nintersects = nintersects,
+                  sets = colnames(incid), order.by = order.by, ...)
+}
+```
+
 ```{r lkup,fig=TRUE, height=3.5, width=6}
 upsetSamples(subsetByAssay(xoverSamp, 
   paste0("insulin_", c("base", "CG", "Cg", "cG", "cg"))), mb.ratio=c(.5,.5))

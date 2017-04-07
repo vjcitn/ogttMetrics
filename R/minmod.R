@@ -122,10 +122,11 @@ minmodByID = function(mae, id, gname="glucose", iname="insulin",  ...) {
  id = as.character(id)
  stopifnot(id %in% rownames(pData(mae)))
  times = mae@times #metadata(mae)$times
- gluc = assay(subsetByAssay(mae, gname))[[1]][,id]
+ ae = function(x) assay(experiments(x)) # avoid using devel method from MultiAssayExperiments
+ gluc = ae(subsetByAssay(mae, gname))[[1]][,id]
  stopifnot(length(times) == length(gluc))
- ins = assay(subsetByAssay(mae, iname))[[1]][,id]
- bw = assay(subsetByAssay(mae, "bodyweight"))[[1]][,id]
+ ins = ae(subsetByAssay(mae, iname))[[1]][,id]
+ bw = ae(subsetByAssay(mae, "bodyweight"))[[1]][,id]
  ans = fitOneMinMod( insulin=ins, glucose=gluc, 
           bodyweight=bw, times=times, ... )
  ans$input$ID = id

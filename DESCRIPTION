@@ -6,7 +6,7 @@ Author: Vince Carey, BJ Stubbs, K Frankston
 Suggests: testthat, dplyr, magrittr, BiocStyle, BiocWorkflowTools
 Depends: methods, deSolve, S4Vectors, MultiAssayExperiment, knitr
 Imports: stats, utils, graphics, Biobase, SummarizedExperiment, parody,
-	ggbiplot, cowplot, ggplot2, plotly, shiny
+	ggbiplot, cowplot, ggplot2, plotly, shiny, UpSetR
 Maintainer: VJ Carey <stvjc@channing.harvard.edu>
 VignetteBuilder: knitr
 License: GPL-3

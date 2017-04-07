@@ -1,3 +1,48 @@
+# for R 3.3
+rearrangeEL = function (object, shape = "long", ...) 
+{
+    dataList <- as.list(object)
+    dataList <- lapply(seq_along(object), function(i, flatBox) {
+        S4Vectors::DataFrame(assay = S4Vectors::Rle(names(object)[i]), 
+            rearrange(flatBox[[i]], ...))
+    }, flatBox = object)
+    dataList
+}
+
+rearrangeMAE = function (object, shape = "long", pDataCols = NULL, 
+        ...) 
+    {
+        addCols <- !is.null(pDataCols)
+        dataList <- rearrangeEL(experiments(object), ...)
+        dataList <- lapply(dataList, function(rectangleDF) {
+            primary <- S4Vectors::Rle(sampleMap(object)[match(rectangleDF[["colname"]], 
+                sampleMap(object)[["colname"]]), "primary"])
+            rectangleDF <- S4Vectors::DataFrame(rectangleDF, 
+                primary = primary)
+            rectangleDF[, c("assay", "primary", "rowname", "colname", 
+                "value")]
+        })
+        outputDataFrame <- do.call(rbind, dataList)
+        if (addCols) {
+            extraColumns <- pData(object)[, pDataCols, drop = FALSE]
+            rowNameValues <- rownames(extraColumns)
+            rownames(extraColumns) <- NULL
+            matchIdx <- BiocGenerics::match(outputDataFrame[["primary"]], 
+                rowNameValues)
+            outputDataFrame <- BiocGenerics::cbind(outputDataFrame, 
+                extraColumns[matchIdx, , drop = FALSE])
+        }
+        if (shape == "wide") {
+            outputDataFrame <- as.data.frame(outputDataFrame)
+            outputDataFrame <- tidyr::unite_(outputDataFrame, 
+                "feature", c("assay", "rowname", "colname"))
+            outputDataFrame <- tidyr::spread(outputDataFrame, 
+                key = "feature", value = "value")
+            outputDataFrame <- DataFrame(outputDataFrame)
+        }
+        return(outputDataFrame)
+    }
+
 #' get multivariate outlier indices separately for glucose and insulin series
 #' @importFrom parody mv.calout.detect
 #' @param oc ogttCohort instance
@@ -27,7 +72,7 @@ mvOutliers = function(oc, t_glu=force, t_ins=force, ...) {
 }
 
 ogbox = function(oc, type="glucose") {
- thin = rearrange(oc)
+ thin = rearrangeMAE(oc)
  thin$assay = as.character(thin$assay)
  thin = as.data.frame(thin[which(thin$assay==type),])
  if (type=="glucose") thin$rowname = gsub("gluc", "", gsub("gluct", "", thin$rowname))

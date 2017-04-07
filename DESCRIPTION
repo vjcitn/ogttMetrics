@@ -1,7 +1,7 @@
 Package: ogttMetrics
 Title: various metrics for oral glucose tolerance tests
 Description: Compute metrics such as insulin sensitivity from oral glucose tolerance tests.
-Version: 0.0.30
+Version: 0.0.31
 Author: Vince Carey, BJ Stubbs, K Frankston
 Suggests: testthat, dplyr, magrittr, BiocStyle, BiocWorkflowTools
 Depends: methods, deSolve, S4Vectors, MultiAssayExperiment, knitr

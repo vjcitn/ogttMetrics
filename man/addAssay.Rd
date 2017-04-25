@@ -9,7 +9,7 @@ addAssay(mae, mat, assayname)
 \arguments{
 \item{mae}{MultiAssayExperiment instance}
 
-\item{mat}{a matrix with rownames assigned; if colnames absent will be taken from rownames(pData(mae))}
+\item{mat}{a matrix with rownames assigned; if colnames absent will be taken from rownames(colData(mae))}
 
 \item{assayname}{character string used to name assay in ExperimentList of mae}
 }

@@ -24,7 +24,7 @@ SIexplorer = function(oc=obaSamp, winsorizeSI=TRUE, ...) {
 #
 # build up information for biplots
 #
- a = assay(experiments(oc))
+ a = assays(experiments(oc))
  ins = na.omit(data.frame(t(a$insulin)))
  insdrop = attributes(ins)$na.action
  insids = colnames(oc)[[1]]
@@ -72,12 +72,12 @@ SIexplorer = function(oc=obaSamp, winsorizeSI=TRUE, ...) {
     output$datasetName = renderText(paste("Dataset:", dstxt))
     output$nrec = renderText(paste("# OGTT:", length(colnames(oc)[[1]])))
     output$idtext = renderText(paste("ID =", input$idpick))
-    output$sitext = renderText(paste("SI =", round(assay(experiments(oc))$SI[1, input$idpick], 6)))
+    output$sitext = renderText(paste("SI =", round(assays(experiments(oc))$SI[1, input$idpick], 6)))
     output$sivmat = renderPlotly( {
        newdf = data.frame(id=colnames(oc)[[1]], 
-                   mats120=as.numeric(assay(experiments(oc))$Mats120),
-                   SI=as.numeric(assay(experiments(oc))$SI[1,]),
-                   converged=as.logical(as.numeric(assay(experiments(oc))$SI[2,])))
+                   mats120=as.numeric(assays(experiments(oc))$Mats120),
+                   SI=as.numeric(assays(experiments(oc))$SI[1,]),
+                   converged=as.logical(as.numeric(assays(experiments(oc))$SI[2,])))
        if (winsorizeSI) newdf$SI = ifelse(newdf$SI < 0,
                  min(newdf$SI[newdf$SI > 0]), newdf$SI)
        newdf$text = 

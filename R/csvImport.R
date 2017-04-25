@@ -46,7 +46,7 @@ csvImport = function(gpath, ipath, spath, times=c(0,10,20,30,60,90,120),
  colnames(insulin) = gluc$id
  rownames(samps) = samps$id
  el = ExperimentList(list(glucose=glucose, insulin=insulin))
- tmp = MultiAssayExperiment(el, pData=samps)
+ tmp = MultiAssayExperiment(el, colData=samps)
  new("ogttCohort", tmp, times=times)
 }
 

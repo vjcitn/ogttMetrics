@@ -100,6 +100,7 @@ fitOneMinMod = function (insulin, glucose, bodyweight, times,
 }
 
 #' @rdname minmodByID
+#' @param x instance of S3 class oneMinMod
 #' @export
 print.oneMinMod = function(x, ...) {
   cat("ogttMetrics Minimal Model fit:\n")
@@ -109,7 +110,7 @@ print.oneMinMod = function(x, ...) {
 #'
 #' Fit minimal model for a single subject
 #' @param mae MultiAssayExperiment instance
-#' @param id character id found in rownames(pData(mae))
+#' @param id character id found in rownames(colData(mae))
 #' @param gname name of ExperimentList component holding glucose concentrations
 #' @param iname name of ExperimentList component holding insulin concentrations
 #' @param \dots passed to \code{\link{fitOneMinMod}}
@@ -120,9 +121,9 @@ print.oneMinMod = function(x, ...) {
 #' @export
 minmodByID = function(mae, id, gname="glucose", iname="insulin",  ...) {
  id = as.character(id)
- stopifnot(id %in% rownames(pData(mae)))
+ stopifnot(id %in% rownames(colData(mae)))
  times = mae@times #metadata(mae)$times
- ae = function(x) assay(experiments(x)) # avoid using devel method from MultiAssayExperiments
+ ae = MultiAssayExperiment::experiments
  gluc = ae(subsetByAssay(mae, gname))[[1]][,id]
  stopifnot(length(times) == length(gluc))
  ins = ae(subsetByAssay(mae, iname))[[1]][,id]
@@ -145,7 +146,7 @@ print.minmodByID = function(x, ...) {
 }
 
 getMinmodSIs_obsolete = function(mae, iter=lapply) {
- allid = rownames(pData(mae))
+ allid = rownames(colData(mae))
  ans = iter(allid, function(x) { try(minmodByID( mae, x))})
  sapply(ans, function(x)
    {
@@ -161,7 +162,7 @@ getMinmodSIs_obsolete = function(mae, iter=lapply) {
 #' @export
 getMinmodSIs = function (mae, iter = lapply, ...) 
 {
-    allid = rownames(pData(mae))
+    allid = rownames(colData(mae))
     ans = iter(allid, function(x) {
         try(minmodByID(mae, x, ...))
     })

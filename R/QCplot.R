@@ -1,74 +1,3 @@
-# for R 3.3
-rearrangeANY = function(object, shape = "long", ...) {
-    if (is(object, "ExpressionSet"))
-        object <- Biobase::exprs(object)
-    if (is(object, "matrix"))
-        object <- reshape2::melt(object, varnames = c("rowname", "colname"),
-                   as.is = TRUE)
-    if (is(object, "SummarizedExperiment")) {
-        ## Ensure that rowData DataFrame has a rowname column
-        ## Otherwise, use first column
-        rownameIn <- "rowname" %in% names(rowData(object))
-        if (any(rownameIn)) {
-            rowData(object) <- rowData(object)[rownameIn]
-        } else {
-            warning("'rowname' column not in 'rowData' taking first one")
-            rowData(object) <- rowData(object)[1L]
-            names(rowData(object)) <- "rowname"
-        }   
-        widedf <- data.frame(rowData(object), assay(object),
-                             stringsAsFactors = FALSE, check.names = FALSE)
-        object <- tidyr::gather(widedf, "colname", "value",
-                                seq_along(widedf)[-1L])
-    }   
-    rectangle <- S4Vectors::DataFrame(object)
-    rectangle[, "colname"] <- S4Vectors::Rle(rectangle[["colname"]])
-    rectangle
-}
-rearrangeEL = function (object, shape = "long", ...) 
-{
-    dataList <- as.list(object)
-    dataList <- lapply(seq_along(object), function(i, flatBox) {
-        S4Vectors::DataFrame(assay = S4Vectors::Rle(names(object)[i]), 
-            rearrangeANY(flatBox[[i]], ...))
-    }, flatBox = object)
-    dataList
-}
-
-rearrangeMAE = function (object, shape = "long", pDataCols = NULL, 
-        ...) 
-    {
-        addCols <- !is.null(pDataCols)
-        dataList <- rearrangeEL(experiments(object), ...)
-        dataList <- lapply(dataList, function(rectangleDF) {
-            primary <- S4Vectors::Rle(sampleMap(object)[match(rectangleDF[["colname"]], 
-                sampleMap(object)[["colname"]]), "primary"])
-            rectangleDF <- S4Vectors::DataFrame(rectangleDF, 
-                primary = primary)
-            rectangleDF[, c("assay", "primary", "rowname", "colname", 
-                "value")]
-        })
-        outputDataFrame <- do.call(rbind, dataList)
-        if (addCols) {
-            extraColumns <- pData(object)[, pDataCols, drop = FALSE]
-            rowNameValues <- rownames(extraColumns)
-            rownames(extraColumns) <- NULL
-            matchIdx <- BiocGenerics::match(outputDataFrame[["primary"]], 
-                rowNameValues)
-            outputDataFrame <- BiocGenerics::cbind(outputDataFrame, 
-                extraColumns[matchIdx, , drop = FALSE])
-        }
-        if (shape == "wide") {
-            outputDataFrame <- as.data.frame(outputDataFrame)
-            outputDataFrame <- tidyr::unite_(outputDataFrame, 
-                "feature", c("assay", "rowname", "colname"))
-            outputDataFrame <- tidyr::spread(outputDataFrame, 
-                key = "feature", value = "value")
-            outputDataFrame <- DataFrame(outputDataFrame)
-        }
-        return(outputDataFrame)
-    }
-
 #' get multivariate outlier indices separately for glucose and insulin series
 #' @importFrom parody mv.calout.detect
 #' @param oc ogttCohort instance
@@ -82,7 +11,7 @@ rearrangeMAE = function (object, shape = "long", pDataCols = NULL,
 #' @export
 mvOutliers = function(oc, t_glu=force, t_ins=force, ...) {
  requireNamespace("parody")
- a = assay(experiments(oc))
+ a = assays(experiments(oc))
  ins = na.omit(t(a$insulin))
  if (!is.null(nd <- attributes(ins)$na.action)) warning(paste0(length(nd), " records dropped with NA in insulin"))
  glu = na.omit(t(a$glucose))
@@ -98,7 +27,7 @@ mvOutliers = function(oc, t_glu=force, t_ins=force, ...) {
 }
 
 ogbox = function(oc, type="glucose") {
- thin = rearrangeMAE(oc)
+ thin = longFormat(oc)
  thin$assay = as.character(thin$assay)
  thin = as.data.frame(thin[which(thin$assay==type),])
  if (type=="glucose") thin$rowname = gsub("gluc", "", gsub("gluct", "", thin$rowname))
@@ -121,7 +50,7 @@ QCplots = function(oc, choices=1:2) {
  requireNamespace("parody")
  requireNamespace("cowplot")
  requireNamespace("ggplot2")
- a = assay(experiments(oc))
+ a = assays(experiments(oc))
  ins = na.omit(data.frame(t(a$insulin)))
  if (!is.null(nd <- attributes(ins)$na.action)) warning(paste0(length(nd), " records dropped with NA in insulin"))
  inslab = colnames(oc)$insulin

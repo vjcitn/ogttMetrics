@@ -13,11 +13,13 @@ minmodByID(mae, id, gname = "glucose", iname = "insulin", ...)
 \method{print}{minmodByID}(x, ...)
 }
 \arguments{
+\item{x}{instance of S3 class oneMinMod}
+
 \item{\dots}{passed to \code{\link{fitOneMinMod}}}
 
 \item{mae}{MultiAssayExperiment instance}
 
-\item{id}{character id found in rownames(pData(mae))}
+\item{id}{character id found in rownames(colData(mae))}
 
 \item{gname}{name of ExperimentList component holding glucose concentrations}
 

@@ -22,6 +22,8 @@
 #' @rdname ogttCohort
 #' @title 
 #' an extension of MultiAssayExperiment including timing information
+#' @description
+#' an extension of MultiAssayExperiment including timing information
 #' @name ogttCohort-class
 #' @slot times a numeric vector of OGTT sampling times
 #' @exportClass ogttCohort
@@ -32,7 +34,7 @@ setAs("MultiAssayExperiment", "ogttCohort", function(from) {
   stopifnot(!is.null(metadata(from)$times))
   new("ogttCohort", times=metadata(from)$times,
     ExperimentList=from@ExperimentList,
-    pData=from@pData,
+    colData=from@colData,
     sampleMap=from@sampleMap,
     metadata=from@metadata,
     drops=from@drops)
@@ -40,7 +42,7 @@ setAs("MultiAssayExperiment", "ogttCohort", function(from) {
 #'
 #' add a matrix-valued assay to a MultiAssayExperiment instance
 #' @param mae MultiAssayExperiment instance
-#' @param mat a matrix with rownames assigned; if colnames absent will be taken from rownames(pData(mae))
+#' @param mat a matrix with rownames assigned; if colnames absent will be taken from rownames(colData(mae))
 #' @param assayname character string used to name assay in ExperimentList of mae
 #' @examples
 #' data(obaSamp)
@@ -57,15 +59,15 @@ addAssay = function(mae, mat, assayname) {
  stopifnot(is(rownames(mat), "character"))
  if (is.null(colnames(mat))) {
    warning("assigning colnames to mat")
-   colnames(mat) = rownames(pData(mae))
+   colnames(mat) = rownames(colData(mae))
  } else {
-   stopifnot(all.equal(colnames(mat), rownames(pData(mae))))
+   stopifnot(all.equal(colnames(mat), rownames(colData(mae))))
    }
  nl = list(mat)
  names(nl) = assayname
  newEL = ExperimentList(c(experiments(mae)@listData, nl))
  inmd = metadata(mae)  # will be NULL if mae is ogttCohort
- newmae = MultiAssayExperiment(newEL, pData(mae)) # set up sampleMap, lose ogttCohort aspect
+ newmae = MultiAssayExperiment(newEL, colData(mae)) # set up sampleMap, lose ogttCohort aspect
  new("ogttCohort", newmae, times=mae@times)
 }
 # metadata(newmae) = inmd

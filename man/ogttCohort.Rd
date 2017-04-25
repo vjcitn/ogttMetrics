@@ -4,6 +4,9 @@
 \name{ogttCohort-class}
 \alias{ogttCohort-class}
 \title{an extension of MultiAssayExperiment including timing information}
+\description{
+an extension of MultiAssayExperiment including timing information
+}
 \section{Slots}{
 
 \describe{

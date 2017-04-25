@@ -11,7 +11,7 @@ addMinmodSIs(mae, iter = lapply, replace = TRUE, ...)
 
 \item{iter}{lapply-like function, possibly mclapply}
 
-\item{replace}{logical, if FALSE will fail if "SI" present among names of assay(mae)}
+\item{replace}{logical, if FALSE will fail if "SI" present among names of assays(mae)}
 
 \item{\dots}{passed to \code{\link{getMinmodSIs}}}
 }

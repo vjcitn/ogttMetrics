@@ -97,11 +97,11 @@ omnilit
 ## Baseline weight
 
 ```{r dowgt}
-w = matrix(pData(omnilit)$bodyweight,nr=1)
+w = matrix(colData(omnilit)$bodyweight,nr=1)
 rownames(w) = "bodyweight"
-colnames(w) = rownames(pData(omnilit))
+colnames(w) = rownames(colData(omnilit))
 newEL = ExperimentList(c(experiments(omnilit)@listData, list(bodyweight=w)))
-omnilit = MultiAssayExperiment(newEL, pData(omnilit)) # set up sampleMap
+omnilit = MultiAssayExperiment(newEL, colData(omnilit)) # set up sampleMap
 metadata(omnilit) = list(times=c(0, 10, 20, 30, 60, 90, 120))
 omnilit = as(omnilit, "ogttCohort")
 ```
@@ -133,7 +133,7 @@ formal representation of assay times.
 ```{r docoh, cache=TRUE}
 library(parallel)
 options(mc.cores=3)
-allid = rownames(pData(omnilit)) 
+allid = rownames(colData(omnilit)) 
 ans = mclapply(allid, function(x) { try(minmodByID( omnilit, x))})
 SIs = sapply(ans, function(x) 
    { 
@@ -142,9 +142,9 @@ SIs = sapply(ans, function(x)
 summary(SIs)
 SIs = matrix(SIs, nr=1)
 rownames(SIs) = "SI"
-colnames(SIs) = rownames(pData(omnilit))
+colnames(SIs) = rownames(colData(omnilit))
 newEL = ExperimentList(c(experiments(omnilit)@listData, list(SI=SIs)))
-omnilit = MultiAssayExperiment(newEL, pData(omnilit)) # set up sampleMap
+omnilit = MultiAssayExperiment(newEL, colData(omnilit)) # set up sampleMap
 metadata(omnilit) = list(times=c(0, 10, 20, 30, 60, 90, 120))
 omnilit = as(omnilit, "ogttCohort")
 ```
@@ -194,7 +194,7 @@ allmsi
 We will obtain a 'long thin' representation, decode
 the diet, and obtain a paired t-test for a contrast of interest.
 ```{r getp1,eval=TRUE}
-msiThin = rearrange(allmsi)
+msiThin = longFormat(allmsi)
 diet = gsub(".*_", "", msiThin$assay)
 msiThin$diet = diet
 library(dplyr)

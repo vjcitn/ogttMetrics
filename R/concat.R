@@ -8,7 +8,7 @@ concat = function( maes = list(
   base=omnicBase, 
   CG=omnicCG, Cg=omnicCg, Cg=omnicCg, cg=omniccg
   ), assays2keep = NULL, basenames=NULL, ...) {
- pd = pData(maes[[1]])
+ pd = colData(maes[[1]])
  if (is.null(assays2keep))
      exs = lapply(maes, function(x) experiments(x))
     else exs = lapply(maes, function(x) experiments(subsetByAssay(x, assays2keep)))
@@ -27,7 +27,7 @@ concat = function( maes = list(
  assn = expand.grid(basenames, enames)
  names(ans) = apply(t(assn),2,paste, collapse="_")
 # FIXME -- should inherit
- MultiAssayExperiment( ExperimentList(ans), pData=pd )
+ MultiAssayExperiment( ExperimentList(ans), colData=pd )
 }
 
 generateTests = function(lth, pairs, levels, measure="Mats120",

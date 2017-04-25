@@ -1,7 +1,7 @@
 #' update an ogttCohort with insulin sensitivity by minimal model, with convergence information
 #' @param mae instance of \code{\link{ogttCohort-class}}
 #' @param iter lapply-like function, possibly mclapply
-#' @param replace logical, if FALSE will fail if "SI" present among names of assay(mae)
+#' @param replace logical, if FALSE will fail if "SI" present among names of assays(mae)
 #' @param \dots passed to \code{\link{getMinmodSIs}}
 #' @examples
 #' data(obaSamp)
@@ -11,7 +11,7 @@
  addMinmodSIs = function(mae, iter = lapply, replace=TRUE, ...) {
    nm = names(experiments(mae))
    if ("SI" %in% nm) {
-     if (!replace) stop("replace is FALSE, but SI found among assay(mae)")
+     if (!replace) stop("replace is FALSE, but SI found among assays(mae)")
      mae = subsetByAssay(mae, setdiff(nm, "SI"))
      warning("SI found in mae, removing and replacing")
      }
@@ -32,10 +32,10 @@
 getScalar = function(oc, index=.homa, name="HOMA") {
  stopifnot(class(oc) == "ogttCohort")
  stopifnot(oc@times[1] == 0)
- g = assay(oc)$glucose
- ins = assay(oc)$insulin
+ g = assays(oc)$glucose
+ ins = assays(oc)$insulin
  h = sapply(1:ncol(g), function(x) index(g[,x], ins[,x]))
- h = matrix(h, nr=1)
+ h = matrix(h, nrow=1)
  colnames(h) = colnames(oc)[[1]]
  rownames(h) = name
  h

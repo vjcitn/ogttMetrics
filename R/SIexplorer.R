@@ -91,7 +91,7 @@ SIexplorer = function(oc=obaSamp, winsorizeSI=TRUE, ...) {
        } )
     output$demo = renderPlot( {
        fit1 = minmodByID(oc, input$idpick, ...)
-       print(plot_OGTT_fit(fit1))
+       plot_OGTT_fit(fit1)
        } )
     output$biplots_glucose = renderPlotly( {
        CH1 = gsub("%%N%%", input$pcbipick_1, "PC%%N%%")

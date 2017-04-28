@@ -4,7 +4,7 @@
 \alias{addAssay}
 \title{add a matrix-valued assay to a MultiAssayExperiment instance}
 \usage{
-addAssay(mae, mat, assayname)
+addAssay(mae, mat, assayname, allowGaps = FALSE)
 }
 \arguments{
 \item{mae}{MultiAssayExperiment instance}
@@ -12,6 +12,8 @@ addAssay(mae, mat, assayname)
 \item{mat}{a matrix with rownames assigned; if colnames absent will be taken from rownames(colData(mae))}
 
 \item{assayname}{character string used to name assay in ExperimentList of mae}
+
+\item{allowGaps}{logical, should addAssay fail if there are gaps between sample labels for new assay and rownames of colData}
 }
 \description{
 add a matrix-valued assay to a MultiAssayExperiment instance

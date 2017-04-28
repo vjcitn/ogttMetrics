@@ -20,10 +20,12 @@ matsuda120 = function( gluc, ins, times ) {
 #' @param mae instance of \code{\link[MultiAssayExperiment]{MultiAssayExperiment-class}}
 #' @param gname name of ExperimentList component holding glucose concentrations
 #' @param iname name of ExperimentList component holding insulin concentrations
+#' @param outname name of ExperimentList component holding Matsuda index
+#' @param allowGaps logical, should addAssay fail if there are gaps between sample labels for new assay and rownames of colData
 #' @return instance of \code{\link[MultiAssayExperiment]{MultiAssayExperiment-class}} that includes assay \code{"Mats120"}
 #' @note The formula of the WEB CALCULATOR at \url{http://mmatsuda.diabetes-smc.jp/english.html} is used
 #' @export
-addMatsuda120 = function(mae, gname = "glucose", iname="insulin") {
+addMatsuda120 = function(mae, gname = "glucose", iname="insulin", outname="Mats120", allowGaps=FALSE) {
   stopifnot(class(mae) == "ogttCohort")
   times120 = c(0,30,60,90,120)
   stopifnot(all(times120 %in% mae@times))
@@ -33,9 +35,9 @@ addMatsuda120 = function(mae, gname = "glucose", iname="insulin") {
   stopifnot(length(times)>0)
   mats = matrix(sapply(1:ncol(gluc), function(x)
      matsuda120( gluc[,x], ins[,x], times )),nrow=1)
-  rownames(mats) = "Mats120"
+  rownames(mats) = outname
   colnames(mats) = colnames(gluc)
-#  experiments(mae)[["Mats120"]] = mats
+#  experiments(mae)[[outname]] = mats
 #  mae
-  addAssay(mae, mats, "Mats120") # properly deals with sampleMap
+  addAssay(mae, mats, outname, allowGaps=allowGaps) # properly deals with sampleMap
 }

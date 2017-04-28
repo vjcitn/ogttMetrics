@@ -44,6 +44,7 @@ setAs("MultiAssayExperiment", "ogttCohort", function(from) {
 #' @param mae MultiAssayExperiment instance
 #' @param mat a matrix with rownames assigned; if colnames absent will be taken from rownames(colData(mae))
 #' @param assayname character string used to name assay in ExperimentList of mae
+#' @param allowGaps logical, should addAssay fail if there are gaps between sample labels for new assay and rownames of colData
 #' @examples
 #' data(obaSamp)
 #' lit = subsetByAssay(obaSamp, c("glucose", "insulin"))
@@ -53,14 +54,14 @@ setAs("MultiAssayExperiment", "ogttCohort", function(from) {
 #' colnames(dum) = colnames(ee)
 #' addAssay(lit, dum, "dum")
 #' @export
-addAssay = function(mae, mat, assayname) {
+addAssay = function(mae, mat, assayname, allowGaps=FALSE) {
  stopifnot(class(mae)=="ogttCohort") # not yet available for MAE
  stopifnot(!missing(assayname))
  stopifnot(is(rownames(mat), "character"))
  if (is.null(colnames(mat))) {
    warning("assigning colnames to mat")
    colnames(mat) = rownames(colData(mae))
- } else {
+ } else if (!allowGaps) {
    stopifnot(all.equal(colnames(mat), rownames(colData(mae))))
    }
  nl = list(mat)

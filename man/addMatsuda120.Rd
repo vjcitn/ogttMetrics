@@ -4,7 +4,8 @@
 \alias{addMatsuda120}
 \title{Compute Matsuda's index (120 minute form) for all samples}
 \usage{
-addMatsuda120(mae, gname = "glucose", iname = "insulin")
+addMatsuda120(mae, gname = "glucose", iname = "insulin",
+  outname = "Mats120", allowGaps = FALSE)
 }
 \arguments{
 \item{mae}{instance of \code{\link[MultiAssayExperiment]{MultiAssayExperiment-class}}}
@@ -12,6 +13,10 @@ addMatsuda120(mae, gname = "glucose", iname = "insulin")
 \item{gname}{name of ExperimentList component holding glucose concentrations}
 
 \item{iname}{name of ExperimentList component holding insulin concentrations}
+
+\item{outname}{name of ExperimentList component holding Matsuda index}
+
+\item{allowGaps}{logical, should addAssay fail if there are gaps between sample labels for new assay and rownames of colData}
 }
 \value{
 instance of \code{\link[MultiAssayExperiment]{MultiAssayExperiment-class}} that includes assay \code{"Mats120"}

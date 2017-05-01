@@ -1,5 +1,10 @@
 
 library(ogttMetrics)
 data(xoverSamp)
-ss = fig3tests(xoverSamp, type="SI")
+mm = fig3tests(xoverSamp)
+#ss = fig3tests(xoverSamp, type="SI")
+data(SItests)
+par(mfrow=c(1,2))
+fig3plot(mm)
+fig3plot(SItests, measTag="SI")
 

@@ -13,7 +13,7 @@
 #' omniccg_samp: S4 container sample of tests with diet cg
 #' @format ogttCohort instance
 #' @source OMNICarb study
-"omniccg_samp"
+"omniccg_samp"  # on case-insensitive file system throws warning
 #' omniccG_samp: S4 container sample of tests with diet cG
 #' @format ogttCohort instance
 #' @source OMNICarb study
@@ -22,3 +22,11 @@
 #' @format ogttCohort instance
 #' @source OMNICarb study
 "omnicCg_samp"
+#' omniccg_samp: S4 container sample of tests at baseline
+#' @format ogttCohort instance
+#' @source OMNICarb study
+"omnicBase_samp"
+#' SItests: cached set of pairwise contrasts for minimal model-based SI (insulin sensitivity) estimates
+#' @format list
+#' @source OMNICarb study
+"SItests"

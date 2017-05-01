@@ -4,14 +4,19 @@
 \alias{addMinmodSIs}
 \title{update an ogttCohort with insulin sensitivity by minimal model, with convergence information}
 \usage{
-addMinmodSIs(mae, iter = lapply, replace = TRUE, ...)
+addMinmodSIs(mae, iter = lapply, outSIname = "SI", replace = TRUE,
+  allowGaps = FALSE, ...)
 }
 \arguments{
 \item{mae}{instance of \code{\link{ogttCohort-class}}}
 
 \item{iter}{lapply-like function, possibly mclapply}
 
+\item{outSIname}{character token to name the assay in output MAE}
+
 \item{replace}{logical, if FALSE will fail if "SI" present among names of assays(mae)}
+
+\item{allowGaps}{logical as used in \code{\link{addAssay}}}
 
 \item{\dots}{passed to \code{\link{getMinmodSIs}}}
 }

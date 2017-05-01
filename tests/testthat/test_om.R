@@ -8,7 +8,7 @@ data(omnicbCbG_samp) # omnicCG
 
 test_that("omnicBase_samp properly loads", {
  expect_true(length(experiments(omnicBase_samp))==2)
- expect_equal(dim(pData(omnicBase_samp)),c(40,4))
+ expect_equal(dim(colData(omnicBase_samp)),c(40,4))
  expect_equal(dim(experiments(omnicBase_samp)$glucose_base),c(7,40))
 })
 
@@ -44,7 +44,7 @@ context("minmod")
 
 test_that("getMinmodSIs succeeds", {
  lit = omnicBase_samp[,1:5]
- bw = pData(lit)[,"bodyweight"]
+ bw = colData(lit)[,"bodyweight"]
  bw = matrix(bw,nrow=1)
  rownames(bw) = "bodyweight"
  colnames(bw) = colnames(lit)[[1]]
@@ -52,7 +52,7 @@ test_that("getMinmodSIs succeeds", {
  suppressWarnings({sis = getMinmodSIs(lit,
     gname="glucose_base", iname="insulin_base")}) # some known non-convergence for these data
  expect_true(all(dim(sis)==c(5,5)))
- expect_true(abs(round(sis[1,3],4)-0.0016)<.0001)
+ expect_true(abs(round(sis[1,3],4)-0.0011)<.0001)
 })
 
 context("plot_OGTT_fit")
@@ -60,7 +60,7 @@ context("plot_OGTT_fit")
 test_that("plot_OGTT_fit does not error", {
  tf = tempfile()
  pdf(tf)
- bw = pData(omnicBase_samp)[,"bodyweight"]
+ bw = colData(omnicBase_samp)[,"bodyweight"]
  bw = matrix(bw,nrow=1)
  rownames(bw) = "bodyweight"
  colnames(bw) = colnames(omnicBase_samp)[[1]]

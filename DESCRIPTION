@@ -3,11 +3,12 @@ Title: various metrics for oral glucose tolerance tests
 Description: Compute metrics such as insulin sensitivity from oral glucose tolerance tests.
 Version: 1.0.5
 Author: Vince Carey, BJ Stubbs, K Frankston
-Suggests: testthat, dplyr, magrittr, BiocStyle, BiocWorkflowTools
+Suggests: testthat, BiocStyle, BiocWorkflowTools
 Depends: R (>= 3.4.0), methods, deSolve, S4Vectors, 
 	MultiAssayExperiment(>= 1.1.49), knitr
 Imports: stats, utils, graphics, Biobase, SummarizedExperiment, parody,
-	ggbiplot, cowplot, ggplot2, plotly, shiny, UpSetR, magrittr
+	ggbiplot, cowplot, ggplot2, plotly, shiny, magrittr, dplyr
+Enhances: UpSetR
 Maintainer: VJ Carey <stvjc@channing.harvard.edu>
 VignetteBuilder: knitr
 License: GPL-3

@@ -14,10 +14,27 @@ updateXMats120 = function(xoverMAE) {
   xoverMAE
 }
 
+updateXSI = function(xoverMAE) {
+  stopifnot(length(xoverMAE@times)>0)
+  xoverMAE = addMinmodSIs(xoverMAE, 
+      gname="glucose_CG", iname="insulin_CG", 
+      outSIname="SI_CG", allowGaps=TRUE)
+  xoverMAE = addMinmodSIs(xoverMAE, 
+      gname="glucose_Cg", iname="insulin_Cg", 
+      outSIname="SI_Cg", allowGaps=TRUE)
+  xoverMAE = addMinmodSIs(xoverMAE, 
+      gname="glucose_cG", iname="insulin_cG", 
+      outSIname="SI_cG", allowGaps=TRUE)
+  xoverMAE = addMinmodSIs(xoverMAE, 
+      gname="glucose_cg", iname="insulin_cg", 
+      outSIname="SI_cg", allowGaps=TRUE)
+  xoverMAE
+}
+
 ## code diet and rowname in xoverSamp, after updateXMats120
-harmonizeX = function(xoverMAE) {
+harmonizeX = function(xoverMAE, stub="Mats120") {
   ll = longFormat(xoverMAE)
-  ll$rowname = gsub("Mats120_.*", "Mats120", ll$rowname)
+  ll$rowname = gsub(paste0(stub, "_.*"), stub, ll$rowname)
   ll$diet = gsub( ".*_(.*)"  , "\\1"  ,  as.character(ll$assay))
   ll
 }
@@ -47,6 +64,7 @@ generateTests = function(lth, pairs, levels, measure="Mats120") {
 #' @param xoverMAE MAE instance like xoverSamp in data
 #' @param contrasts a list of diet code pairs
 #' @param levels confidence coefficients to be used
+#' @param type character either "Mats120" or "SI"
 #' @examples
 #' data(xoverSamp)
 #' tt = fig3tests(xoverSamp)
@@ -55,10 +73,13 @@ generateTests = function(lth, pairs, levels, measure="Mats120") {
 fig3tests = function(xoverMAE, 
    contrasts= list(c("Cg", "CG"), c("cg", "cG"), c("cG", "CG"), 
       c("cg", "Cg"), c("cg", "CG")), 
-   levels=c(.95, .95, .95, .95, .99)) {
-  xoverMAE = updateXMats120(xoverMAE)
-  ll = harmonizeX(xoverMAE)
-  curtests = generateTests(ll, contrasts, levels )
+   levels=c(.95, .95, .95, .95, .99), type="Mats120") {
+  if (type=="Mats120")
+       xoverMAE = updateXMats120(xoverMAE)
+  else if (type=="SI")
+       xoverMAE = updateXSI(xoverMAE)
+  ll = harmonizeX(xoverMAE, stub=type)
+  curtests = generateTests(ll, contrasts, levels, measure=type )
   ints = sapply(curtests, "[[", "conf.int")
   mns = sapply(curtests, "[[", "estimate")
   nint = length(mns)
@@ -66,13 +87,29 @@ fig3tests = function(xoverMAE,
 }
 
 #' plot analog of OMNICarb paper figure 3
-#' @param f3out -- output of fig3tests
+#' @param f3out output of fig3tests
+#' @param measTag character tag to be used in xlab after delta symbol
 #' @export
-fig3plot = function(f3out) {
+fig3plot = function (f3out, measTag = "Matsuda") {
+    xl = range(as.numeric(f3out$ints)) * 1.05
+    par(mar = c(4, 5, 2, 2))
+    if (measTag == "Matsuda") xlb = expression(paste(Delta, " Matsuda"))
+    else if (measTag == "SI") xlb = expression(paste(Delta, " SI"))
+    plot(f3out$mns, f3out$nint:1, pch = 19, axes = FALSE, xlab=xlb,
+        xlim = xl, ylim = c(0.8, f3out$nint + 
+        0.2), ylab = " ")
+    segments(f3out$ints[1, ], f3out$nint:1, f3out$ints[2, ], 
+        f3out$nint:1)
+    axis(1)
+    axis(2, at = f3out$nint:1, labels = names(f3out$tests), las = 2)
+    abline(v = 0)
+}
+
+fig3plotOLD = function(f3out, measTag = "Matsuda") {
   xl = range(as.numeric(f3out$ints))*1.05
   par(mar=c(4,5,2,2))
   plot(f3out$mns, f3out$nint:1, pch=19, axes=FALSE, 
-      xlab=expression(paste(Delta, " Matsuda")), xlim=xl,
+      xlab=expression(paste(Delta, paste0(" ",measTag))), xlim=xl,
       ylim=c(.8,f3out$nint+.2), ylab=" ")
   segments(f3out$ints[1,], f3out$nint:1, f3out$ints[2,], f3out$nint:1)
   axis(1)

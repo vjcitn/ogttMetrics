@@ -4,10 +4,12 @@
 \alias{fig3plot}
 \title{plot analog of OMNICarb paper figure 3}
 \usage{
-fig3plot(f3out)
+fig3plot(f3out, measTag = "Matsuda")
 }
 \arguments{
-\item{f3out}{-- output of fig3tests}
+\item{f3out}{output of fig3tests}
+
+\item{measTag}{character tag to be used in xlab after delta symbol}
 }
 \description{
 plot analog of OMNICarb paper figure 3

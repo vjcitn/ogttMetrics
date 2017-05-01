@@ -1,14 +1,17 @@
 #' update an ogttCohort with insulin sensitivity by minimal model, with convergence information
 #' @param mae instance of \code{\link{ogttCohort-class}}
 #' @param iter lapply-like function, possibly mclapply
+#' @param outSIname character token to name the assay in output MAE
 #' @param replace logical, if FALSE will fail if "SI" present among names of assays(mae)
+#' @param allowGaps logical as used in \code{\link{addAssay}}
 #' @param \dots passed to \code{\link{getMinmodSIs}}
 #' @examples
 #' data(obaSamp)
 #' lk = addMinmodSIs(obaSamp[,1:5])
 #' lk
 #' @export
- addMinmodSIs = function(mae, iter = lapply, replace=TRUE, ...) {
+ addMinmodSIs = function(mae, iter = lapply, outSIname="SI", replace=TRUE, 
+   allowGaps=FALSE, ...) {
    nm = names(experiments(mae))
    if ("SI" %in% nm) {
      if (!replace) stop("replace is FALSE, but SI found among assays(mae)")
@@ -16,7 +19,7 @@
      warning("SI found in mae, removing and replacing")
      }
    mat = getMinmodSIs(mae, iter, ...)
-   addAssay(mae, mat, "SI")
+   addAssay(mae, mat, outSIname, allowGaps=allowGaps)
  }
 
 .homa = function(glu, ins) {

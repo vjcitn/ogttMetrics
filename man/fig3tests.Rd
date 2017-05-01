@@ -6,7 +6,7 @@
 \usage{
 fig3tests(xoverMAE, contrasts = list(c("Cg", "CG"), c("cg", "cG"), c("cG",
   "CG"), c("cg", "Cg"), c("cg", "CG")), levels = c(0.95, 0.95, 0.95, 0.95,
-  0.99))
+  0.99), type = "Mats120")
 }
 \arguments{
 \item{xoverMAE}{MAE instance like xoverSamp in data}
@@ -14,6 +14,8 @@ fig3tests(xoverMAE, contrasts = list(c("Cg", "CG"), c("cg", "cG"), c("cG",
 \item{contrasts}{a list of diet code pairs}
 
 \item{levels}{confidence coefficients to be used}
+
+\item{type}{character either "Mats120" or "SI"}
 }
 \description{
 generate statistics for analog of OMNICarb paper figure 3
